@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#007BFF"          # Blue Engineer (Intel Style)
+backgroundColor = "#000000ff"       # Dark Background (VS Code Style)
+secondaryBackgroundColor = "#161616ff" # Sidebar Dark Grey
+textColor = "#FAFAFA"             # White Text
+font = "sans serif"
