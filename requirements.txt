@@ -1,7 +1,7 @@
 streamlit
 opencv-python-headless
 numpy>=1.24.0
-matplotlib
 pandas
 scikit-image>=0.21.0
 openpyxl
+altair

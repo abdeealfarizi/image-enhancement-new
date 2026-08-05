@@ -1,6 +1,13 @@
 [theme]
-primaryColor = "#007BFF"          # Blue Engineer (Intel Style)
-backgroundColor = "#000000ff"       # Dark Background (VS Code Style)
-secondaryBackgroundColor = "#161616ff" # Sidebar Dark Grey
-textColor = "#FAFAFA"             # White Text
-font = "sans serif"
+base = "dark"
+
+primaryColor = "#008cff"
+backgroundColor = "#000000"
+secondaryBackgroundColor = "#0f1011"
+textColor = "#ffffff"
+
+font = "'IBM Plex Sans':https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+headingFont = "'Space Grotesk':https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
+codeFont = "'IBM Plex Mono':https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+headingFontWeights = 600
+baseRadius = "0.4rem"
