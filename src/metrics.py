@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
-import math
 from collections import OrderedDict
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import mean_squared_error as mse
+from skimage.filters import scharr_h, scharr_v
 
 _PC_CACHE = OrderedDict()
 _PC_CACHE_MAXSIZE = 4
@@ -126,13 +126,13 @@ def _fsim(gray_a, gray_b):
     pc1 = _phase_congruency_cached(gray_a)
     pc2 = _phase_congruency_cached(gray_b)
     
-    gx1 = cv2.Scharr(gray_a, cv2.CV_64F, 1, 0)
-    gy1 = cv2.Scharr(gray_a, cv2.CV_64F, 0, 1)
-    gm1 = cv2.magnitude(gx1, gy1)
+    gx1 = scharr_v(gray_a)
+    gy1 = scharr_h(gray_a)
+    gm1 = np.sqrt(gx1 ** 2 + gy1 ** 2)
     
-    gx2 = cv2.Scharr(gray_b, cv2.CV_64F, 1, 0)
-    gy2 = cv2.Scharr(gray_b, cv2.CV_64F, 0, 1)
-    gm2 = cv2.magnitude(gx2, gy2)
+    gx2 = scharr_v(gray_b)
+    gy2 = scharr_h(gray_b)
+    gm2 = np.sqrt(gx2 ** 2 + gy2 ** 2)
     
     s_pc = (2 * pc1 * pc2 + T1) / (pc1**2 + pc2**2 + T1)
     s_g = (2 * gm1 * gm2 + T2) / (gm1**2 + gm2**2 + T2)
@@ -156,7 +156,7 @@ def calculate_metrics(image_a, image_b):
 
     try:
         score_mse = mse(image_a, image_b)
-        score_rmse = math.sqrt(score_mse)
+        score_rmse = np.sqrt(score_mse)
         score_psnr = psnr(image_a, image_b, data_range=255)
     except Exception:
         score_mse = 0.0

@@ -205,12 +205,12 @@ if run_btn:
                 continue
 
             file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
-            original_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            
+            original_img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
+
             if original_img is None:
                 st.warning(f"File {file.name} korup atau tidak valid. Melewati citra ini.", icon="⚠️")
                 continue
-                
+
             if original_img.ndim != 3 or original_img.shape[2] != 3:
                 st.warning(f"Citra {file.name} tidak memiliki tiga saluran warna (RGB) yang valid. Melewati citra ini.", icon="⚠️")
                 continue
