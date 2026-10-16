@@ -1,4 +1,15 @@
-# Image Enhancement — CLAHE vs. CLAHE-NLM
+<p align="center">
+  <img src="logo.png" alt="Image Enhancement Logo" width="120">
+</p>
+
+<h1 align="center">Image Enhancement</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
+</p>
+
+## CLAHE vs. CLAHE-NLM
 
 > An interactive Streamlit lab for comparing two low-light image enhancement pipelines — **CLAHE** and a hybrid **CLAHE + Non-Local Means Denoising (CLAHE-NLM)** — side by side, backed by five objective image-quality metrics.
 
