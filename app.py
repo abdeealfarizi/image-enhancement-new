@@ -9,7 +9,7 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from src.processing import apply_clahe, apply_nlm
+from src.processing import apply_clahe, apply_nlm, apply_nlm_clahe
 from src.metrics import calculate_metrics
 
 st.set_page_config(
@@ -25,7 +25,8 @@ def _kolom_log_kosong():
     cols = pd.MultiIndex.from_tuples([
         ("CITRA", "Nama File"), ("PARAMETER", "Clip Limit"), ("PARAMETER", "Ukuran Grid"), ("PARAMETER", "Kekuatan NLM (h)"),
         ("CLAHE", "MSE"), ("CLAHE", "RMSE"), ("CLAHE", "PSNR"), ("CLAHE", "SSIM"), ("CLAHE", "FSIM"),
-        ("CLAHE-NLM", "MSE"), ("CLAHE-NLM", "RMSE"), ("CLAHE-NLM", "PSNR"), ("CLAHE-NLM", "SSIM"), ("CLAHE-NLM", "FSIM")
+        ("CLAHE-NLM", "MSE"), ("CLAHE-NLM", "RMSE"), ("CLAHE-NLM", "PSNR"), ("CLAHE-NLM", "SSIM"), ("CLAHE-NLM", "FSIM"),
+        ("NLM-CLAHE", "MSE"), ("NLM-CLAHE", "RMSE"), ("NLM-CLAHE", "PSNR"), ("NLM-CLAHE", "SSIM"), ("NLM-CLAHE", "FSIM")
     ])
     return pd.DataFrame(columns=cols)
 
@@ -120,16 +121,19 @@ def render_galeri(gallery_data):
             continue
         jumlah_cocok += 1
         with st.expander(f"Citra #{idx} — {item['filename']}", icon=":material/image:", expanded=first_shown):
-            c1, c2, c3 = st.columns(3)
+            c1, c2, c3, c4 = st.columns(4)
             with c1:
                 st.image(item["original"], caption="Citra Asli", use_container_width=True)
             with c2:
                 st.image(item["clahe"], caption="CLAHE", use_container_width=True)
             with c3:
                 st.image(item["nlm"], caption="CLAHE-NLM", use_container_width=True)
+            with c4:
+                st.image(item["nlm_clahe"], caption="NLM-CLAHE", use_container_width=True)
 
             m_clahe = item["metrics_clahe"]
             m_hybrid = item["metrics_hybrid"]
+            m_nlm_clahe = item["metrics_nlm_clahe"]
 
             st.caption("Metrik CLAHE")
             cols_clahe = st.columns(5)
@@ -141,14 +145,21 @@ def render_galeri(gallery_data):
             for mcol, nama_metrik in zip(cols_hybrid, URUTAN_METRIK):
                 mcol.metric(nama_metrik, f"{m_hybrid[nama_metrik]:.4f}", border=True)
 
+            st.caption("Metrik NLM-CLAHE")
+            cols_nlm_clahe = st.columns(5)
+            for mcol, nama_metrik in zip(cols_nlm_clahe, URUTAN_METRIK):
+                mcol.metric(nama_metrik, f"{m_nlm_clahe[nama_metrik]:.4f}", border=True)
+
             if st.checkbox("Tampilkan Histogram", key=f"hist_{item['filename']}_{idx}"):
-                hc1, hc2, hc3 = st.columns(3)
+                hc1, hc2, hc3, hc4 = st.columns(4)
                 with hc1:
                     st.altair_chart(plot_histogram_interactive(item["original"], "Citra Asli"), use_container_width=True)
                 with hc2:
                     st.altair_chart(plot_histogram_interactive(item["clahe"], "CLAHE"), use_container_width=True)
                 with hc3:
                     st.altair_chart(plot_histogram_interactive(item["nlm"], "CLAHE-NLM"), use_container_width=True)
+                with hc4:
+                    st.altair_chart(plot_histogram_interactive(item["nlm_clahe"], "NLM-CLAHE"), use_container_width=True)
         first_shown = False
 
     if search_query and jumlah_cocok == 0:
@@ -219,9 +230,11 @@ if run_btn:
 
             clahe_res = apply_clahe(original_img, clip_limit, (8,8))
             nlm_res = apply_nlm(clahe_res, nlm_h)
+            nlm_clahe_res = apply_nlm_clahe(original_img, clip_limit, nlm_h, (8,8))
 
             metrics_clahe = calculate_metrics(original_img, clahe_res)
             metrics_hybrid = calculate_metrics(original_img, nlm_res)
+            metrics_nlm_clahe = calculate_metrics(original_img, nlm_clahe_res)
 
             new_row = {
                 ("CITRA", "Nama File"): file.name,
@@ -237,7 +250,12 @@ if run_btn:
                 ("CLAHE-NLM", "RMSE"): metrics_hybrid["RMSE"],
                 ("CLAHE-NLM", "PSNR"): metrics_hybrid["PSNR"],
                 ("CLAHE-NLM", "SSIM"): metrics_hybrid["SSIM"],
-                ("CLAHE-NLM", "FSIM"): metrics_hybrid["FSIM"]
+                ("CLAHE-NLM", "FSIM"): metrics_hybrid["FSIM"],
+                ("NLM-CLAHE", "MSE"): metrics_nlm_clahe["MSE"],
+                ("NLM-CLAHE", "RMSE"): metrics_nlm_clahe["RMSE"],
+                ("NLM-CLAHE", "PSNR"): metrics_nlm_clahe["PSNR"],
+                ("NLM-CLAHE", "SSIM"): metrics_nlm_clahe["SSIM"],
+                ("NLM-CLAHE", "FSIM"): metrics_nlm_clahe["FSIM"]
             }
             rows_baru.append(new_row)
 
@@ -246,8 +264,10 @@ if run_btn:
                 "original": original_img,
                 "clahe": clahe_res,
                 "nlm": nlm_res,
+                "nlm_clahe": nlm_clahe_res,
                 "metrics_clahe": metrics_clahe,
                 "metrics_hybrid": metrics_hybrid,
+                "metrics_nlm_clahe": metrics_nlm_clahe,
             })
 
             progress_bar.progress((i + 1) / total_files)
@@ -276,7 +296,8 @@ if st.session_state['image_gallery']:
     st.subheader("Log Data Akumulasi")
     st.dataframe(st.session_state['data_log'].style.format({
         ("CLAHE", "MSE"): "{:.4f}", ("CLAHE", "RMSE"): "{:.4f}", ("CLAHE", "PSNR"): "{:.4f}", ("CLAHE", "SSIM"): "{:.4f}", ("CLAHE", "FSIM"): "{:.4f}",
-        ("CLAHE-NLM", "MSE"): "{:.4f}", ("CLAHE-NLM", "RMSE"): "{:.4f}", ("CLAHE-NLM", "PSNR"): "{:.4f}", ("CLAHE-NLM", "SSIM"): "{:.4f}", ("CLAHE-NLM", "FSIM"): "{:.4f}"
+        ("CLAHE-NLM", "MSE"): "{:.4f}", ("CLAHE-NLM", "RMSE"): "{:.4f}", ("CLAHE-NLM", "PSNR"): "{:.4f}", ("CLAHE-NLM", "SSIM"): "{:.4f}", ("CLAHE-NLM", "FSIM"): "{:.4f}",
+        ("NLM-CLAHE", "MSE"): "{:.4f}", ("NLM-CLAHE", "RMSE"): "{:.4f}", ("NLM-CLAHE", "PSNR"): "{:.4f}", ("NLM-CLAHE", "SSIM"): "{:.4f}", ("NLM-CLAHE", "FSIM"): "{:.4f}"
     }), use_container_width=True)
 
     excel_data = generate_excel_buffer(st.session_state['data_log'])
