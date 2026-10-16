@@ -197,7 +197,7 @@ with col1:
 
 with col2:
     st.markdown("# Image Enhancement")
-    st.caption("Low-light Image Enhancement Using CLAHE and CLAHE-NLM")
+    st.caption("Low-light Image Enhancement Using CLAHE, CLAHE-NLM, NLM-CLAHE")
 #logo
 
 if run_btn:
