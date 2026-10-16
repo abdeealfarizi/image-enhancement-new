@@ -30,3 +30,16 @@ def apply_nlm(image_rgb, h_strength):
 
     denoised_rgb = cv2.cvtColor(denoised_bgr, cv2.COLOR_BGR2RGB)
     return denoised_rgb
+
+def apply_nlm_clahe(image_rgb, clip_limit, h_strength, grid_size=(8,8)):
+    """
+    Urutan kebalik dari pipeline utama: NLM (reduksi noise) diterapkan
+    lebih dulu pada citra asli, baru CLAHE (peningkatan kontras)
+    diterapkan pada hasil denoising tersebut.
+
+    Dipakai sebagai skenario pembanding (NLM-CLAHE) terhadap pipeline
+    utama (CLAHE-NLM), sesuai masukan sidang Usulan Penelitian.
+    """
+    denoised = apply_nlm(image_rgb, h_strength)
+    final_img = apply_clahe(denoised, clip_limit, grid_size)
+    return final_img
